@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PH-GRID | ROOT ACCESS</title>
+    <style>
+        :root {
+            --power-red: #ff3333;
+            --hacker-cyan: #00f2ff;
+            --bg-dark: #020202;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* --- LOADING BOOT SCREEN --- */
+        #boot-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: black;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease;
+        }
+
+        .loader-ring {
+            width: 80px; height: 80px;
+            border: 5px solid #111;
+            border-top: 5px solid var(--power-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* --- MAIN DASHBOARD --- */
+        #dashboard {
+            display: none; /* Revealed after boot */
+            padding: 20px;
+            height: 100vh;
+            background: radial-gradient(circle at center, #1a0505 0%, #000 100%);
+        }
+
+        .grid-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,0,0,0.3);
+            padding: 10px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .main-layout {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 70vh;
+        }
+
+        /* Manila Grid Visualization */
+        .map-visual {
+            width: 450px;
+            height: 450px;
+            border: 2px solid #222;
+            border-radius: 50%;
+            position: relative;
+            background: repeating-radial-gradient(circle, #000 0, #000 20px, #111 21px);
+        }
+
+        .node {
+            position: absolute;
+            width: 8px; height: 8px;
+            background: var(--hacker-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--hacker-cyan);
+            animation: pulse 2s infinite;
+        }
+
+        /* Progress Area */
+        .progress-box {
+            width: 400px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background: #111;
+            border: 1px solid #333;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        #progress-inner {
+            width: 0%;
+            height: 100%;
+            background: var(--power-red);
+            box-shadow: 0 0 20px var(--power-red);
+        }
+
+        /* --- OVERLAYS --- */
+        #blackout {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: black;
+            opacity: 0;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        .glitch-msg {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--power-red);
+            font-size: 4rem;
+            font-weight: bold;
+            z-index: 1001;
+            text-shadow: 2px 2px black;
+            text-align: center;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        .glitch-anim { animation: shake 0.1s infinite; }
+        @keyframes shake {
+            0% { transform: translate(-50%, -50%) translate(2px, 2px); }
+            50% { transform: translate(-50%, -50%) translate(-2px, -2px); }
+            100% { transform: translate(-50%, -50%) translate(1px, -1px); }
+        }
+
+        /* CRT Scanlines */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+
+    <div id="boot-screen">
+        <div class="loader-ring"></div>
+        <p style="margin-top: 20px; color: #444;">ESTABLISHING ENCRYPTED TUNNEL...</p>
+        <div id="boot-logs" style="font-size: 0.7rem; color: #222; margin-top: 10px;"></div>
+    </div>
+
+    <div id="dashboard">
+        <div class="grid-header">
+            <span>SECURE LINK: PHILIPPINES_GOV_BACKBONE</span>
+            <span style="color: var(--power-red);">ACCESS LEVEL: ROOT_EXPLOIT</span>
+            <span id="clock">00:00:00</span>
+        </div>
+
+        <div class="main-layout">
+            <div class="map-visual" id="manila-map">
+                <div class="node" style="top:30%; left:40%;"></div>
+                <div class="node" style="top:45%; left:55%;"></div>
+                <div class="node" style="top:60%; left:35%;"></div>
+                <div class="node" style="top:50%; left:20%;"></div>
+                <div class="node" style="top:25%; left:65%;"></div>
+                <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#222; font-size:10px;">METRO_MANILA_COORDS</div>
+            </div>
+
+            <div class="progress-box">
+                <h2 style="color: var(--power-red); margin: 0;">NATIONAL GRID CONTROL</h2>
+                <div class="progress-bar">
+                    <div id="progress-inner"></div>
+                </div>
+                <div id="status-update" style="color: #666; font-size: 0.9rem;">IDLE - STANDING BY FOR COMMAND</div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <input type="text" id="payload-trigger" placeholder="EXECUTE PAYLOAD..." 
+                   style="background:transparent; border:1px solid #333; color:var(--power-red); padding:10px; width:300px; text-align:center; outline:none;">
+        </div>
+    </div>
+
+    <div id="blackout"></div>
+    <div id="final-msg" class="glitch-msg glitch-anim">SYSTEM OVERRIDE<br>100%<br><span style="font-size: 1.5rem; color: white;">MANILA_DARK_MODE</span></div>
+
+    <script>
+        const bootScreen = document.getElementById('boot-screen');
+        const dashboard = document.getElementById('dashboard');
+        const input = document.getElementById('payload-trigger');
+        const bar = document.getElementById('progress-inner');
+        const status = document.getElementById('status-update');
+        const blackout = document.getElementById('blackout');
+        const finalMsg = document.getElementById('final-msg');
+        const nodes = document.querySelectorAll('.node');
+
+        // Simulate Boot Up
+        window.onload = () => {
+            setTimeout(() => {
+                bootScreen.style.opacity = '0';
+                setTimeout(() => {
+                    bootScreen.style.display = 'none';
+                    dashboard.style.display = 'block';
+                }, 1000);
+            }, 2500);
+        };
+
+        // Real-time Clock
+        setInterval(() => {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+        }, 1000);
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                input.disabled = true;
+                startBlackoutSequence();
+            }
+        });
+
+        async function startBlackoutSequence() {
+            let width = 0;
+            status.style.color = "var(--hacker-cyan)";
+            
+            const interval = setInterval(() => {
+                width += Math.random() * 8;
+                if (width >= 100) {
+                    width = 100;
+                    clearInterval(interval);
+                    executeBlackout();
+                }
+                bar.style.width = width + '%';
+                status.textContent = `INJECTING PAYLOAD... ${Math.floor(width)}%`;
+            }, 150);
+        }
+
+        function executeBlackout() {
+            status.textContent = "PAYLOAD SUCCESSFUL. TERMINATING GRID.";
+            status.style.color = "var(--power-red)";
+
+            setTimeout(() => {
+                // The dramatic cut
+                blackout.style.opacity = "1";
+                finalMsg.style.display = "block";
+                
+                // Kill the lights (nodes)
+                nodes.forEach(n => {
+                    n.style.background = "#111";
+                    n.style.boxShadow = "none";
+                });
+
+                console.log("JACK: We did it. The Jack just turned off the lights of Manila.");
+            }, 1200);
+        }
+    </script>
+</body>
+</html>

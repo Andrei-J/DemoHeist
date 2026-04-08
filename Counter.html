@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REDEMPTION | LOGIC BOMB DETONATION</title>
+    <style>
+        :root {
+            --nbi-blue: #0044ff;
+            --bomb-yellow: #ffcc00;
+            --danger-red: #ff1111;
+            --bg-dark: #000;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            background-color: var(--bg-dark);
+            color: #fff;
+            font-family: 'Consolas', monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Ambient Police Siren (Flicker) */
+        #siren-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            animation: siren-flash 1.2s infinite;
+            opacity: 0.12;
+            pointer-events: none;
+        }
+
+        @keyframes siren-flash {
+            0%, 49% { background-color: var(--danger-red); }
+            50%, 100% { background-color: var(--nbi-blue); }
+        }
+
+        /* --- Main Battle UI --- */
+        #battle-container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        /* High-Stakes Progress Bars */
+        .progress-section {
+            width: 85%;
+            max-width: 650px;
+            margin: 15px 0;
+        }
+
+        .bar-label {
+            display: flex; justify-content: space-between;
+            margin-bottom: 5px; font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .progress-bg {
+            width: 100%; height: 30px;
+            background: #111; border: 1px solid #333;
+            position: relative;
+            box-shadow: inset 0 0 10px #000;
+        }
+
+        .bar-fill {
+            width: 0%; height: 100%;
+            transition: width 0.15s linear;
+        }
+
+        #restore-fill { background: var(--nbi-blue); box-shadow: 0 0 20px var(--nbi-blue); }
+        #logic-bomb-fill { background: var(--bomb-yellow); box-shadow: 0 0 20px var(--bomb-yellow); }
+
+        /* Hacker Error Log (Live Feed) */
+        #error-log {
+            width: 85%; height: 180px;
+            background: rgba(10,10,10,0.9);
+            border: 1px solid #222;
+            overflow-y: hidden;
+            font-size: 0.8rem;
+            padding: 15px;
+            margin-top: 25px;
+            color: #ff5555;
+            text-shadow: 0 0 5px #ff0000;
+        }
+
+        /* Tech Breakout Pop-up */
+        .tech-popup {
+            position: fixed;
+            bottom: 30px; right: 30px;
+            width: 300px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #000;
+            padding: 20px;
+            border-left: 10px solid var(--nbi-blue);
+            display: none;
+            z-index: 100;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+
+        /* Input Area (Start) */
+        #terminal-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #fff;
+            color: #fff;
+            font-size: 1.8rem;
+            width: 450px;
+            text-align: center;
+            outline: none;
+            margin-top: 40px;
+            letter-spacing: 3px;
+        }
+
+        /* --- THE LOGIC BOMB BUTTON (Climax) --- */
+        #detonate-zone {
+            display: none; /* Revealed at 100% progress */
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .exec-button {
+            background: #111;
+            color: var(--bomb-yellow);
+            border: 3px solid var(--bomb-yellow);
+            padding: 20px 50px;
+            font-size: 2rem;
+            font-family: 'Consolas', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.3);
+        }
+
+        .exec-button:hover {
+            background: var(--bomb-yellow);
+            color: #000;
+            box-shadow: 0 0 50px var(--bomb-yellow);
+        }
+
+        .exec-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Glitch Warning Overlay (Caleb's Failure) */
+        #glitch-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--danger-red);
+            color: #000;
+            display: none;
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: glitch-vibrate 0.1s infinite;
+        }
+
+        @keyframes glitch-vibrate {
+            0% { transform: translate(2px, 2px); }
+            50% { transform: translate(-2px, -2px); }
+            100% { transform: translate(1px, -1px); }
+        }
+
+        /* Final Reset Screen (White) */
+        #reset-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
+            display: none;
+            z-index: 1000;
+            color: #000;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* CRT Effects */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+    <div id="siren-overlay"></div>
+
+    <div id="pop-logic" class="tech-popup">
+        <strong>TECH BREAKOUT: Logic Bomb</strong><br><br>
+        A malicious code that triggers on a specific event. (In this case, the button press). It erases Caleb’s stolen data and broadcasts their location to the NBI.
+    </div>
+
+    <div id="glitch-overlay">
+        <h1 style="font-size: 5rem; letter-spacing: -5px;">CRITICAL_FAILURE</h1>
+        <p style="font-size: 2rem;">SERVER_INTEGRITY: COMPROMISED</p>
+        <p>[ FILES DELETED ] [ LOCATION SENT ]</p>
+    </div>
+
+    <div id="battle-container">
+        <h1 style="letter-spacing: 15px; text-shadow: 0 0 15px #fff;">RESTORING POWER...</h1>
+        
+        <div class="progress-section">
+            <div class="bar-label">
+                <span>MANILA POWER GRID STATUS (HOSPITAL_ZONE)</span>
+                <span id="p-restore">0%</span>
+            </div>
+            <div class="progress-bg">
+                <div id="restore-fill" class="bar-fill"></div>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="bar-label">
+                <span>LOGIC BOMB ARMING STATUS (CIPHER_MAIN)</span>
+                <span id="p-bomb">0%</span>
+            </div>
+            <div class="progress-bg">
+                <div id="logic-bomb-fill" class="bar-fill"></div>
+            </div>
+        </div>
+
+        <div id="error-log">
+            <div>[INITIALIZING COUNTER-HACK]... STANDBY</div>
+            <div>[SYSTEM] CIPHER_ONG: ACCESS_DENIED</div>
+        </div>
+
+        <input type="text" id="terminal-input" placeholder="Type 'SAVE LOLO' to begin" autofocus autocomplete="off">
+
+        <div id="detonate-zone">
+            <button class="exec-button" onclick="detonateLogicBomb()">Execute Logic Bomb</button>
+            <p style="color: var(--bomb-yellow); margin-top: 10px; font-size: 0.8rem;">[ WARNING: THIS ACTION IS IRREVERSIBLE ]</p>
+        </div>
+    </div>
+
+    <div id="reset-overlay">
+        <h1 style="font-size: 5rem;">CTRL + ALT + DEL</h1>
+        <p style="font-size: 2rem;">Grid Restored. Life Reset.</p>
+        <p style="font-size: 1rem; margin-top: 60px; color: #666;">[ LOCATION BROADCAST COMPLETE ] [ AGENT MATEO REYES HAS ARRIVED ]</p>
+    </div>
+
+    <script>
+        const input = document.getElementById('terminal-input');
+        const restoreFill = document.getElementById('restore-fill');
+        const bombFill = document.getElementById('logic-bomb-fill');
+        const pRestoreText = document.getElementById('p-restore');
+        const pBombText = document.getElementById('p-bomb');
+        const errorLog = document.getElementById('error-log');
+        const popLogic = document.getElementById('pop-logic');
+        const detonateZone = document.getElementById('detonate-zone');
+        const glitchOverlay = document.getElementById('glitch-overlay');
+        const resetOverlay = document.getElementById('reset-overlay');
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (input.value.toUpperCase() === 'SAVE LOLO') {
+                    input.style.display = 'none';
+                    startFinalShowdown();
+                } else {
+                    alert("COMMAND REJECTED. Type 'SAVE LOLO'.");
+                    input.value = '';
+                }
+            }
+        });
+
+        async function startFinalShowdown() {
+            let progress = 0;
+            
+            // Fast typing/cracking speed
+            const interval = setInterval(() => {
+                progress += 1;
+                
+                // Update UI Bars
+                restoreFill.style.width = progress + '%';
+                pRestoreText.textContent = progress + '%';
+                
+                // Bomb arms faster
+                bombFill.style.width = (progress * 1.25) + '%'; 
+                pBombText.textContent = Math.min(100, Math.floor(progress * 1.25)) + '%';
+
+                // Real-time error feed
+                if (progress % 4 === 0) {
+                    const logs = [
+                        `[CIPHER] WHAT ARE YOU DOING, JACK?!`,
+                        `[SYSTEM] BYPASSING CIPHER_FIREWALL...`,
+                        `[HOSPITAL] BACKUP GENERATOR FAILING...`,
+                        `[NBI] SIGNAL LOCK INITIATED...`,
+                        `[JACK] JUST HOLD ON, LOLO...`
+                    ];
+                    const div = document.createElement('div');
+                    div.textContent = logs[Math.floor(Math.random() * logs.length)];
+                    errorLog.prepend(div);
+                }
+
+                // Tech Breakout Pop-up (at 60%)
+                if (progress === 60) popLogic.style.display = 'block';
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    showDetonateButton();
+                }
+            }, 70);
+        }
+
+        function showDetonateButton() {
+            // Reveal the final button zone
+            detonateZone.style.display = 'block';
+            errorLog.prepend(document.createElement('div')).textContent = "[SYSTEM] LOGIC BOMB PRIMED. AWAITING FINAL EXECUTION.";
+            errorLog.style.borderColor = "var(--bomb-yellow)";
+        }
+
+        function detonateLogicBomb() {
+            // The Moment Jack Clicks
+            console.log("JACK: Too late. I already uploaded a Logic Bomb sa main frame mo.");
+            
+            detonateZone.style.display = 'none';
+            glitchOverlay.style.display = 'flex'; // violent red glitch
+
+            // Brief "failure" before the final reset
+            setTimeout(() => {
+                glitchOverlay.style.display = 'none';
+                resetOverlay.style.display = 'flex'; // peaceful white reset
+                console.log("JACK: No. I just hit 'CTRL + ALT + DEL' sa buhay natin.");
+            }, 1800);
+        }
+    </script>
+</body>
+</html>

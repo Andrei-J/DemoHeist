@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THE FINAL HEIST</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div id="noise"></div>
+  <div id="blackout-overlay"></div>
+  <div id="alert-overlay">NATIONAL INFRASTRUCTURE OVERRIDE IN PROGRESS</div>
+
+  <header class="hero section">
+    <div class="hero-bg">
+      <pre id="code-rain" aria-hidden="true"></pre>
+    </div>
+
+    <div class="hero-content container">
+      <p class="eyebrow">Cinematic Short Film Experience</p>
+      <h1 class="glitch" data-text="THE FINAL HEIST">THE FINAL HEIST</h1>
+      <p class="tagline">One exploit. Total control.</p>
+      <button class="btn glitch-btn" id="watch-trailer-btn">Watch Trailer</button>
+      <p class="terminal-hint">boot_sequence<span class="cursor">_</span></p>
+    </div>
+  </header>
+
+  <main>
+    <section class="scene section">
+      <div class="container grid-2">
+        <div class="panel">
+          <h2> The Final Heist</h2>
+          <p class="muted">Hidden hacker hub. Red ambient glow. Multi-screen command center.</p>
+          <blockquote>
+            "The Jack"
+          </blockquote>
+          <blockquote>
+            "Executing the payload now..."
+          </blockquote>
+
+          <div class="progress-panel">
+            <div class="progress-title">
+              <span>SYSTEM OVERRIDE</span>
+              <strong id="override-percent">0%</strong>
+            </div>
+            <div class="progress-track">
+              <div id="override-bar"></div>
+            </div>
+          </div>
+
+          <button class="btn danger" id="execute-btn">EXECUTE PAYLOAD</button>
+        </div>
+
+        <div class="panel terminal">
+          <h3>Terminal Feed</h3>
+          <ul id="log-list">
+            <li>&gt; Initializing breach tunnel...</li>
+            <li>&gt; Accessing Grid...</li>
+            <li>&gt; Bypassing Firewall...</li>
+            <li>&gt; Injecting silent exploit vector...</li>
+            <li>&gt; Awaiting payload authorization...</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="characters section">
+      <div class="container">
+        <h2>Key Operatives</h2>
+        <div class="card-grid">
+          <article class="char-card glitch-hover">
+            <p class="role">Hacker / Executor</p>
+            <h3>Jack</h3>
+            <p>Focused, determined, razor-precise under pressure.</p>
+          </article>
+          <article class="char-card glitch-hover">
+            <p class="role">Mastermind</p>
+            <h3>Caleb "Cipher" Ong</h3>
+            <p>Calm, manipulative, always three moves ahead.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="section">
+    <div class="container footer-content">
+      <p>THE FINAL HEIST &copy; 2026 - Short Film Promo</p>
+      <p class="muted">This is a fictional project for educational purposes.</p>
+    </div>
+  </footer>
+
+  <script src="./script.js"></script>
+</body>
+</html>

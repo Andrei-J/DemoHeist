@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAIA Terminal - System Breach</title>
+    <style>
+        :root {
+            --matrix-green: #00ff41;
+            --warning-red: #ff0033;
+            --bg-dark: #060606;
+            --glitch-color: rgba(0, 255, 65, 0.2);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--matrix-green);
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* --- LOGIN SCREEN (COMPROMISED) --- */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle, #0a0a0a 0%, #000 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .login-box {
+            border: 1px solid var(--matrix-green);
+            padding: 40px;
+            background: rgba(0, 20, 0, 0.5);
+            box-shadow: 0 0 20px var(--glitch-color);
+            text-align: center;
+            position: relative;
+        }
+
+        .login-box h2 {
+            margin-top: 0;
+            letter-spacing: 5px;
+            animation: flicker 2s infinite;
+        }
+
+        .warning-banner {
+            background: var(--warning-red);
+            color: white;
+            padding: 5px;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            animation: pulse 1s infinite;
+        }
+
+        .login-box input {
+            background: #000;
+            border: 1px solid var(--matrix-green);
+            color: white;
+            padding: 10px;
+            margin: 10px 0;
+            width: 80%;
+            outline: none;
+        }
+
+        .login-box button {
+            background: var(--matrix-green);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* --- TERMINAL INTERFACE --- */
+        #terminal-container {
+            display: none; /* Hidden until login */
+            padding: 25px;
+            flex-direction: column;
+            height: 90vh;
+            font-size: 1.1rem;
+            text-shadow: 0 0 5px var(--matrix-green);
+        }
+
+        .log-line { margin-bottom: 8px; }
+        .error-line { color: var(--warning-red); text-shadow: 0 0 5px var(--warning-red); }
+        #command-line { display: flex; align-items: center; margin-top: 10px; }
+
+        #terminal-input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1.2rem;
+            outline: none;
+            width: 100%;
+            margin-left: 10px;
+        }
+
+        /* --- HIJACK OVERLAY --- */
+        #hijack-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: black;
+            z-index: 3000;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .jack-logo {
+            font-size: 180px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px var(--warning-red));
+            animation: tremor 0.1s infinite;
+        }
+
+        .status-text {
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--warning-red);
+            text-transform: uppercase;
+            letter-spacing: 15px;
+            margin: 0;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
+            20%, 24%, 55% { opacity: 0; }
+        }
+
+        @keyframes pulse {
+            0% { background: var(--warning-red); }
+            50% { background: #660000; }
+            100% { background: var(--warning-red); }
+        }
+
+        @keyframes tremor {
+            0% { transform: translate(2px, 1px) rotate(0deg); }
+            50% { transform: translate(-1px, -2px) rotate(-1deg); }
+            100% { transform: translate(1px, 2px) rotate(1deg); }
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 4000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+
+    <div id="login-screen">
+        <div class="warning-banner">EXTERNAL BREACH DETECTED - SECURITY COMPROMISED</div>
+        <div class="login-box">
+            <h2>NAIA_GATEWAY</h2>
+            <div style="font-size: 0.7rem; color: #555; margin-bottom: 10px;">ID: UNKNOWN_USER | IP: [HIDDEN]</div>
+            <input type="text" value="ROOT_ADMIN" disabled><br>
+            <input type="password" id="pass-field" placeholder="PASSWORD" value="********"><br>
+            <button onclick="bypassLogin()">BYPASS SECURITY</button>
+        </div>
+        <div style="margin-top: 20px; font-size: 0.8rem; color: var(--warning-red);">ALERT: SECURITY PROTOCOL 7-G DISABLED</div>
+    </div>
+
+    <div id="terminal-container">
+        <div id="history">
+            <div class="log-line">SYSTEM: NAIA_MAIN_FRAME ONLINE</div>
+            <div class="log-line" style="color:white">BYPASS SUCCESSFUL. WELCOME, JACK.</div>
+            <div class="log-line">LOCATION: TERMINAL_CONTROL_ROOM_A</div>
+            <div class="log-line">SECURITY_LEVEL: <span style="color:red">COMPROMISED</span></div>
+            <div class="log-line">----------------------------------------</div>
+        </div>
+        <div id="command-line">
+            <span>JACK@NAIA:~$</span>
+            <input type="text" id="terminal-input" autocomplete="off">
+        </div>
+    </div>
+
+    <div id="hijack-screen">
+        <div class="jack-logo">🃏</div>
+        <h1 class="status-text">HIJACKED BY THE JACK</h1>
+        <p style="color: white; font-size: 1.5rem; letter-spacing: 5px;">SYSTEM CRITICAL FAULT - POWERING DOWN</p>
+    </div>
+
+    <script>
+        const loginScreen = document.getElementById('login-screen');
+        const terminalContainer = document.getElementById('terminal-container');
+        const input = document.getElementById('terminal-input');
+        const history = document.getElementById('history');
+        const hijackScreen = document.getElementById('hijack-screen');
+
+        const flightNumbers = ["PR102", "5J456", "SQ917", "CX902", "KE622", "EK333"];
+
+        // Handle Login Bypass
+        function bypassLogin() {
+            loginScreen.style.display = 'none';
+            terminalContainer.style.display = 'flex';
+            input.focus();
+        }
+
+        // Handle Terminal Commands
+        input.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const cmd = input.value.trim();
+                if (cmd === 'shutdown -s -t 0') {
+                    startCorruption();
+                } else {
+                    const line = document.createElement('div');
+                    line.className = 'log-line';
+                    line.textContent = `JACK@NAIA:~$ ${cmd}`;
+                    history.appendChild(line);
+                    input.value = '';
+                }
+            }
+        });
+
+        async function startCorruption() {
+            input.disabled = true;
+            document.getElementById('command-line').style.display = 'none';
+
+            addLog("INITIALIZING SYSTEM OVERRIDE...", "log-line");
+            await sleep(600);
+            
+            for(let i = 0; i < flightNumbers.length; i++) {
+                addLog(`CORRUPTING DEPARTURE: ${flightNumbers[i]} -> [STATUS: DELAYED]`, "error-line");
+                await sleep(400);
+            }
+
+            addLog("ALL DEPARTURE FLOWS REDIRECTED.", "log-line");
+            await sleep(500);
+            
+            const loadingLine = addLog("UPLOADING 'JACK-IN-THE-BOX' VIRUS: [          ]", "log-line");
+            for(let i = 1; i <= 10; i++) {
+                await sleep(200);
+                loadingLine.textContent = `UPLOADING 'JACK-IN-THE-BOX' VIRUS: [${'#'.repeat(i)}${' '.repeat(10-i)}] ${i*10}%`;
+            }
+
+            await sleep(400);
+            triggerFinalHijack();
+        }
+
+        function addLog(text, className) {
+            const line = document.createElement('div');
+            line.className = className;
+            line.textContent = text;
+            history.appendChild(line);
+            window.scrollTo(0, document.body.scrollHeight);
+            return line;
+        }
+
+        function triggerFinalHijack() {
+            hijackScreen.style.display = 'flex';
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jack's Computer - System Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=VT323&display=swap');
+
+  :root {
+    --green: #00ff41;
+    --green-dim: #00aa2a;
+    --green-glow: rgba(0, 255, 65, 0.4);
+    --bg: #0a0f0a;
+    --panel: #0d1a0d;
+    --border: #1a3a1a;
+    --text: #b0ffb8;
+    --red: #ff3333;
+    --yellow: #ffdd00;
+    --cyan: #00ffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--green);
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* CRT scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.07) 2px,
+      rgba(0,0,0,0.07) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* CRT vignette */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  .desktop {
+    width: 100%;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 28px 1fr 36px;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(0,60,0,0.15) 0%, transparent 60%),
+      var(--bg);
+  }
+
+  /* MENU BAR */
+  .menubar {
+    background: #071207;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 20px;
+    font-size: 11px;
+    color: var(--green-dim);
+  }
+  .menubar .logo { color: var(--green); font-weight: bold; letter-spacing: 2px; font-size: 12px; }
+  .menubar span { cursor: default; }
+  .menubar span:hover { color: var(--green); }
+  .menubar .time { margin-left: auto; color: var(--green); }
+
+  /* MAIN AREA */
+  .main-area {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    overflow: hidden;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: #080f08;
+    border-right: 1px solid var(--border);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sidebar-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    color: var(--green-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 6px;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: default;
+    color: var(--text);
+    transition: background 0.15s;
+  }
+  .sidebar-item:hover { background: rgba(0,255,65,0.08); color: var(--green); }
+  .sidebar-item.active { background: rgba(0,255,65,0.12); color: var(--green); border-left: 2px solid var(--green); }
+  .sidebar-item .icon { font-size: 14px; opacity: 0.7; }
+
+  .sidebar-divider { height: 1px; background: var(--border); margin: 6px 0; }
+
+  /* FIREWALL MONITOR */
+  .firewall-panel {
+    margin-top: auto;
+    background: rgba(0,255,65,0.05);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 10px;
+  }
+  .firewall-panel .fw-title {
+    color: var(--green);
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .fw-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+  .fw-stat { display: flex; justify-content: space-between; color: var(--text); margin: 3px 0; }
+  .fw-stat .val { color: var(--green); }
+
+  /* CONTENT AREA */
+  .content {
+    position: relative;
+    padding: 16px;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 12px;
+  }
+
+  /* TOP BAR */
+  .content-topbar {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    height: 90px;
+  }
+
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .stat-card .label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--green-dim);
+    font-family: 'Orbitron', monospace;
+  }
+  .stat-card .value {
+    font-family: 'VT323', monospace;
+    font-size: 32px;
+    color: var(--green);
+    line-height: 1;
+    text-shadow: 0 0 10px var(--green-glow);
+  }
+  .stat-card .sub { font-size: 10px; color: var(--text); opacity: 0.6; }
+  .stat-card.warn .value { color: var(--yellow); text-shadow: 0 0 10px rgba(255,220,0,0.4); }
+  .stat-card.ok .value { color: var(--green); }
+
+  /* GRAPHS ROW */
+  .graphs-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 280px;
+    gap: 12px;
+    overflow: hidden;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--green-dim);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .panel-title .badge {
+    background: rgba(0,255,65,0.1);
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 8px;
+  }
+
+  /* BAR CHART */
+  .bar-chart { display: flex; align-items: flex-end; gap: 5px; flex: 1; padding-top: 8px; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; height: 100%; }
+  .bar-wrap { flex: 1; display: flex; align-items: flex-end; width: 100%; }
+  .bar {
+    width: 100%;
+    background: linear-gradient(to top, var(--green), rgba(0,255,65,0.3));
+    border-radius: 2px 2px 0 0;
+    min-height: 4px;
+    transition: height 0.5s ease;
+    box-shadow: 0 0 6px var(--green-glow);
+  }
+  .bar-label { font-size: 9px; color: var(--text); opacity: 0.5; }
+
+  /* LINE CHART */
+  .line-chart-wrap { flex: 1; position: relative; }
+  canvas.line-canvas { width: 100%; height: 100%; }
+
+  /* LOG PANEL */
+  .log-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
+  .log-list::-webkit-scrollbar { width: 3px; }
+  .log-list::-webkit-scrollbar-track { background: transparent; }
+  .log-list::-webkit-scrollbar-thumb { background: var(--green-dim); }
+
+  .log-entry {
+    font-size: 10px;
+    color: var(--text);
+    opacity: 0.7;
+    display: flex;
+    gap: 8px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from{opacity:0; transform:translateX(-4px);} to{opacity:0.7;} }
+  .log-entry .ts { color: var(--green-dim); flex-shrink: 0; }
+  .log-entry.blocked { color: var(--red); opacity: 0.9; }
+  .log-entry.blocked .ts { color: #aa0000; }
+  .log-entry.warn { color: var(--yellow); opacity: 0.9; }
+
+  /* TECH BREAKOUT OVERLAY */
+  .tech-breakout {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    border: 2px solid var(--cyan);
+    border-radius: 6px;
+    padding: 14px 24px;
+    max-width: 500px;
+    text-align: center;
+    z-index: 500;
+    box-shadow: 0 0 30px rgba(0,255,255,0.3);
+    animation: slideUp 0.5s ease;
+    display: none;
+  }
+  @keyframes slideUp { from{opacity:0;transform:translateX(-50%) translateY(20px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
+  .tech-breakout.show { display: block; }
+  .tech-breakout .tb-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--cyan);
+    margin-bottom: 6px;
+  }
+  .tech-breakout .tb-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    color: white;
+    margin-bottom: 8px;
+  }
+  .tech-breakout .tb-body { font-size: 12px; color: #ccc; line-height: 1.6; }
+  .tech-breakout .tb-body strong { color: var(--cyan); }
+
+  /* POPUP OVERLAY */
+  .popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0);
+    z-index: 600;
+    display: none;
+    pointer-events: none;
+    transition: background 0.5s;
+  }
+  .popup-overlay.show { display: block; }
+  .popup-overlay.darken { background: rgba(0,0,0,0.5); pointer-events: all; }
+
+  /* DANCING JACK POPUP */
+  .jack-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: #111;
+    border: 3px solid #ff0066;
+    border-radius: 8px;
+    width: 340px;
+    z-index: 700;
+    box-shadow: 0 0 60px rgba(255,0,102,0.7), 0 0 120px rgba(255,0,102,0.3);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    overflow: hidden;
+    display: none;
+  }
+  .jack-popup.show {
+    display: block;
+  }
+  .jack-popup.pop {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .popup-titlebar {
+    background: linear-gradient(90deg, #ff0066, #ff6600);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: white;
+  }
+  .popup-close-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-family: monospace;
+  }
+
+  .popup-body {
+    padding: 20px;
+    text-align: center;
+    background: #111;
+  }
+
+  /* JACK IN THE BOX CHARACTER */
+  .jack-character {
+    font-size: 70px;
+    animation: jackDance 0.5s infinite alternate;
+    display: inline-block;
+    filter: drop-shadow(0 0 20px rgba(255,0,102,0.8));
+  }
+  @keyframes jackDance {
+    0%   { transform: rotate(-15deg) scale(1) translateY(0); }
+    25%  { transform: rotate(5deg) scale(1.08) translateY(-6px); }
+    50%  { transform: rotate(-10deg) scale(0.95) translateY(2px); }
+    75%  { transform: rotate(12deg) scale(1.05) translateY(-4px); }
+    100% { transform: rotate(-8deg) scale(1.1) translateY(-8px); }
+  }
+
+  .popup-msg {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: #ff0066;
+    margin: 10px 0 4px;
+    text-shadow: 0 0 10px rgba(255,0,102,0.6);
+    animation: glitch 0.2s infinite;
+  }
+  @keyframes glitch {
+    0%,100%{text-shadow: 0 0 10px rgba(255,0,102,0.6); transform:none;}
+    25%{text-shadow: 2px 0 0 cyan, -2px 0 0 red; transform:skewX(1deg);}
+    75%{text-shadow: -2px 0 0 cyan, 2px 0 0 red; transform:skewX(-1deg);}
+  }
+  .popup-sub { font-size: 11px; color: #888; margin-top: 4px; }
+
+  .popup-progress {
+    margin: 14px 0 8px;
+    background: #222;
+    border-radius: 3px;
+    height: 8px;
+    overflow: hidden;
+    border: 1px solid #333;
+  }
+  .popup-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ff0066, #ff6600);
+    width: 0%;
+    animation: progressFill 3s linear forwards;
+    box-shadow: 0 0 8px rgba(255,0,102,0.6);
+  }
+  @keyframes progressFill { to { width: 100%; } }
+
+  .popup-progress-label { font-size: 10px; color: #666; text-align: left; }
+
+  /* SCREEN BLINK EFFECT */
+  .screen-blink {
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 9000;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .screen-blink.flash { animation: screenFlash 0.15s ease; }
+  @keyframes screenFlash {
+    0%{opacity:0;} 30%{opacity:0.6;} 100%{opacity:0;}
+  }
+
+  /* TASKBAR */
+  .taskbar {
+    background: #071207;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 10px;
+    font-size: 10px;
+  }
+  .taskbar-app {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: rgba(0,255,65,0.08);
+    border: 1px solid var(--border);
+    color: var(--text);
+    cursor: default;
+  }
+  .taskbar-app.active { background: rgba(0,255,65,0.15); border-color: var(--green-dim); color: var(--green); }
+  .taskbar-sep { width: 1px; height: 20px; background: var(--border); }
+  .taskbar-status { margin-left: auto; display: flex; gap: 12px; color: var(--green-dim); font-size: 10px; }
+  .status-ok { color: var(--green); }
+  .status-warn { color: var(--yellow); animation: pulse 1s infinite; }
+
+  /* DEMO CONTROLS */
+  .demo-controls {
+    position: fixed;
+    bottom: 50px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+  }
+  .demo-btn {
+    background: rgba(0,0,0,0.85);
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 8px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .demo-btn:hover { background: rgba(0,255,65,0.15); border-color: var(--green); box-shadow: 0 0 10px var(--green-glow); }
+  .demo-btn.red { border-color: #ff0066; color: #ff0066; }
+  .demo-btn.red:hover { background: rgba(255,0,102,0.15); box-shadow: 0 0 10px rgba(255,0,102,0.4); }
+  .demo-btn.cyan { border-color: var(--cyan); color: var(--cyan); }
+  .demo-btn.cyan:hover { background: rgba(0,255,255,0.1); box-shadow: 0 0 10px rgba(0,255,255,0.3); }
+</style>
+</head>
+<body>
+
+<div class="screen-blink" id="screenBlink"></div>
+
+<!-- DESKTOP -->
+<div class="desktop">
+
+  <!-- MENUBAR -->
+  <div class="menubar">
+    <span class="logo">◈ JACKOS</span>
+    <span>File</span><span>Monitor</span><span>Network</span><span>Security</span><span>Help</span>
+    <span class="time" id="clock">--:--:--</span>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-area">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-title">◈ Navigator</div>
+      <div class="sidebar-item active"><span class="icon">📊</span> Dashboard</div>
+      <div class="sidebar-item"><span class="icon">🛡️</span> Firewall</div>
+      <div class="sidebar-item"><span class="icon">🌐</span> Network</div>
+      <div class="sidebar-item"><span class="icon">⚙️</span> Processes</div>
+      <div class="sidebar-item"><span class="icon">📁</span> Files</div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-item"><span class="icon">🔧</span> Settings</div>
+      <div class="sidebar-item"><span class="icon">📋</span> Logs</div>
+
+      <div class="firewall-panel">
+        <div class="fw-title"><span class="fw-dot"></span> FIREWALL</div>
+        <div class="fw-stat"><span>Status</span><span class="val" id="fwStatus">ACTIVE</span></div>
+        <div class="fw-stat"><span>Blocked</span><span class="val" id="fwBlocked">247</span></div>
+        <div class="fw-stat"><span>Threats</span><span class="val" id="fwThreats">0</span></div>
+        <div class="fw-stat"><span>Uptime</span><span class="val">99.8%</span></div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- TOP STATS -->
+      <div class="content-topbar">
+        <div class="stat-card ok">
+          <div class="label">CPU USAGE</div>
+          <div class="value" id="cpuVal">34%</div>
+          <div class="sub">4 cores active</div>
+        </div>
+        <div class="stat-card ok">
+          <div class="label">MEMORY</div>
+          <div class="value" id="memVal">2.1GB</div>
+          <div class="sub">of 8GB used</div>
+        </div>
+        <div class="stat-card ok">
+          <div class="label">NETWORK</div>
+          <div class="value" id="netVal">12KB/s</div>
+          <div class="sub">inbound traffic</div>
+        </div>
+        <div class="stat-card ok" id="threatCard">
+          <div class="label">THREATS</div>
+          <div class="value" id="threatVal">0</div>
+          <div class="sub" id="threatSub">all clear</div>
+        </div>
+      </div>
+
+      <!-- GRAPHS ROW -->
+      <div class="graphs-row">
+
+        <!-- BAR CHART -->
+        <div class="panel">
+          <div class="panel-title">PROCESS MONITOR <span class="badge">LIVE</span></div>
+          <div class="bar-chart" id="barChart"></div>
+        </div>
+
+        <!-- LINE CHART -->
+        <div class="panel">
+          <div class="panel-title">NETWORK TRAFFIC <span class="badge">LIVE</span></div>
+          <div class="line-chart-wrap">
+            <canvas id="lineCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- LOG PANEL -->
+        <div class="panel">
+          <div class="panel-title">FIREWALL LOG <span class="badge" id="logBadge">NORMAL</span></div>
+          <div class="log-list" id="logList"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- TASKBAR -->
+  <div class="taskbar">
+    <div class="taskbar-app active">◈ Dashboard</div>
+    <div class="taskbar-sep"></div>
+    <div class="taskbar-app">🛡 Firewall</div>
+    <div class="taskbar-app">🌐 Browser</div>
+    <div class="taskbar-app">📁 Files</div>
+    <div class="taskbar-status">
+      <span class="status-ok" id="taskbarFW">🛡 FW: ON</span>
+      <span id="taskbarNet">⬇ 12KB/s</span>
+    </div>
+  </div>
+</div>
+
+<!-- TECH BREAKOUT -->
+<div class="tech-breakout" id="techBreakout">
+  <div class="tb-label">◈ TECH BREAKOUT</div>
+  <div class="tb-title">FIREWALL</div>
+  <div class="tb-body">
+    Ang digital <strong>"security guard"</strong> ng computer.<br>
+    Bina-<strong>block</strong> nito ang mga hackers na gustong pumasok sa system mo.
+  </div>
+</div>
+
+<!-- POPUP OVERLAY -->
+<div class="popup-overlay" id="popupOverlay"></div>
+
+<!-- JACK POPUP -->
+<div class="jack-popup" id="jackPopup">
+  <div class="popup-titlebar">
+    <span>🎪 FUNTIME JACKZ v1.0</span>
+    <button class="popup-close-btn" onclick="closePopup()">×</button>
+  </div>
+  <div class="popup-body">
+    <div class="jack-character">🎪</div>
+    <div class="popup-msg">HELLO JACK!! 👋</div>
+    <div class="popup-sub">ur computer is mine now lol 😈</div>
+    <div class="popup-progress">
+      <div class="popup-progress-bar" id="progressBar"></div>
+    </div>
+    <div class="popup-progress-label">encrypting files... please wait 😜</div>
+  </div>
+</div>
+
+<!-- DEMO CONTROLS -->
+<div class="demo-controls">
+  <button class="demo-btn cyan" onclick="showTechBreakout()">▶ TECH BREAKOUT</button>
+  <button class="demo-btn red" onclick="triggerVirus()">⚠ TRIGGER VIRUS</button>
+  <button class="demo-btn" onclick="resetAll()">↺ RESET</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-PH', {hour12: false});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ═══════════════════════════════════════
+// BAR CHART
+// ═══════════════════════════════════════
+const processes = ['SYS', 'NET', 'GUI', 'DB', 'SEC', 'USR'];
+const barChart = document.getElementById('barChart');
+
+processes.forEach(name => {
+  const col = document.createElement('div');
+  col.className = 'bar-col';
+  col.innerHTML = `
+    <div class="bar-wrap"><div class="bar" id="bar_${name}" style="height:30%"></div></div>
+    <div class="bar-label">${name}</div>
+  `;
+  barChart.appendChild(col);
+});
+
+function updateBars() {
+  processes.forEach(name => {
+    const bar = document.getElementById('bar_' + name);
+    if (!bar) return;
+    const h = Math.floor(Math.random() * 60 + 10);
+    bar.style.height = h + '%';
+  });
+}
+setInterval(updateBars, 1200);
+updateBars();
+
+// ═══════════════════════════════════════
+// LINE CHART (canvas)
+// ═══════════════════════════════════════
+const canvas = document.getElementById('lineCanvas');
+const ctx = canvas.getContext('2d');
+const netHistory = Array(50).fill(0).map(() => Math.random() * 30 + 5);
+
+function resizeCanvas() {
+  const wrap = canvas.parentElement;
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function drawLine() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(0,255,65,0.07)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) {
+    const y = H * i / 4;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  }
+
+  // Line
+  const max = Math.max(...netHistory, 1);
+  const pts = netHistory.map((v,i) => ({
+    x: (i / (netHistory.length-1)) * W,
+    y: H - (v/max) * (H * 0.85) - H*0.05
+  }));
+
+  // Fill
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, H);
+  pts.forEach(p => ctx.lineTo(p.x, p.y));
+  ctx.lineTo(pts[pts.length-1].x, H);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,255,65,0.06)';
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  pts.forEach((p,i) => i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle = '#00ff41';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = '#00ff41';
+  ctx.shadowBlur = 6;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Dot
+  const last = pts[pts.length-1];
+  ctx.beginPath();
+  ctx.arc(last.x, last.y, 3, 0, Math.PI*2);
+  ctx.fillStyle = '#00ff41';
+  ctx.shadowColor = '#00ff41';
+  ctx.shadowBlur = 10;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function updateNet() {
+  netHistory.shift();
+  netHistory.push(Math.random() * 40 + 5);
+  drawLine();
+  document.getElementById('netVal').textContent = Math.floor(netHistory[netHistory.length-1]) + 'KB/s';
+  document.getElementById('taskbarNet').textContent = '⬇ ' + Math.floor(netHistory[netHistory.length-1]) + 'KB/s';
+}
+setInterval(updateNet, 400);
+drawLine();
+
+// ═══════════════════════════════════════
+// LOG
+// ═══════════════════════════════════════
+const normalLogs = [
+  { cls:'', msg:'Connection accepted: 192.168.1.1' },
+  { cls:'', msg:'DNS query resolved: google.com' },
+  { cls:'', msg:'Packet filtered: UDP/53' },
+  { cls:'', msg:'SSL handshake complete' },
+  { cls:'', msg:'Session established: port 443' },
+  { cls:'', msg:'Cache hit: assets.cdn.net' },
+  { cls:'', msg:'Heartbeat OK: 10.0.0.1' },
+  { cls:'warn', msg:'Unusual port scan detected' },
+  { cls:'', msg:'ICMP ping: responded' },
+  { cls:'blocked', msg:'BLOCKED: suspicious IP 45.33.32.156' },
+];
+
+function addLog(entry) {
+  const list = document.getElementById('logList');
+  const d = document.createElement('div');
+  d.className = 'log-entry ' + (entry.cls||'');
+  const t = new Date().toLocaleTimeString('en-PH',{hour12:false});
+  d.innerHTML = `<span class="ts">[${t}]</span><span>${entry.msg}</span>`;
+  list.insertBefore(d, list.firstChild);
+  while (list.children.length > 18) list.removeChild(list.lastChild);
+}
+
+function randomLog() {
+  addLog(normalLogs[Math.floor(Math.random() * normalLogs.length)]);
+}
+setInterval(randomLog, 1800);
+randomLog(); randomLog(); randomLog();
+
+// ═══════════════════════════════════════
+// CPU + MEM live update
+// ═══════════════════════════════════════
+let cpuBase = 34;
+function updateStats() {
+  cpuBase += (Math.random()-0.5)*8;
+  cpuBase = Math.max(15, Math.min(60, cpuBase));
+  document.getElementById('cpuVal').textContent = Math.floor(cpuBase) + '%';
+  const mem = (2.1 + (Math.random()-0.5)*0.3).toFixed(1);
+  document.getElementById('memVal').textContent = mem + 'GB';
+}
+setInterval(updateStats, 2000);
+
+// Firewall blocked counter
+let blocked = 247;
+setInterval(() => {
+  if (Math.random() < 0.3) {
+    blocked++;
+    document.getElementById('fwBlocked').textContent = blocked;
+  }
+}, 3000);
+
+// ═══════════════════════════════════════
+// TECH BREAKOUT
+// ═══════════════════════════════════════
+let techTimer = null;
+function showTechBreakout() {
+  const el = document.getElementById('techBreakout');
+  el.classList.add('show');
+  clearTimeout(techTimer);
+  techTimer = setTimeout(() => el.classList.remove('show'), 6000);
+}
+
+// ═══════════════════════════════════════
+// VIRUS TRIGGER
+// ═══════════════════════════════════════
+let virusMode = false;
+let virusInterval = null;
+
+function triggerVirus() {
+  if (virusMode) return;
+  virusMode = true;
+
+  // Screen blink
+  const blink = document.getElementById('screenBlink');
+  let blinks = 0;
+  const blinkTimer = setInterval(() => {
+    blink.classList.remove('flash');
+    void blink.offsetWidth;
+    blink.classList.add('flash');
+    blinks++;
+    if (blinks >= 4) clearInterval(blinkTimer);
+  }, 180);
+
+  // After blinks, show popup
+  setTimeout(() => {
+    // Freak out the logs
+    const virusLogs = [
+      { cls:'blocked', msg:'⚠ UNKNOWN PROCESS: jackz.exe' },
+      { cls:'blocked', msg:'⚠ FIREWALL BREACH DETECTED' },
+      { cls:'blocked', msg:'⚠ Unauthorized access: port 6969' },
+      { cls:'warn', msg:'CRITICAL: System integrity check FAIL' },
+      { cls:'blocked', msg:'⚠ Malware signature: JACKZ.TROJAN' },
+    ];
+    virusLogs.forEach((l,i) => setTimeout(() => addLog(l), i*200));
+
+    // Update stats to look scary
+    document.getElementById('fwStatus').textContent = 'BREACHED';
+    document.getElementById('fwStatus').style.color = '#ff3333';
+    document.getElementById('fwThreats').textContent = '1';
+    document.getElementById('fwThreats').style.color = '#ff3333';
+
+    document.getElementById('threatVal').textContent = '1';
+    document.getElementById('threatCard').classList.remove('ok');
+    document.getElementById('threatCard').classList.add('warn');
+    document.getElementById('threatSub').textContent = 'threat detected!';
+
+    document.getElementById('logBadge').textContent = 'ALERT';
+    document.getElementById('logBadge').style.background = 'rgba(255,0,0,0.2)';
+    document.getElementById('logBadge').style.borderColor = '#ff3333';
+    document.getElementById('logBadge').style.color = '#ff3333';
+
+    document.getElementById('taskbarFW').textContent = '🔴 FW: BREACHED';
+    document.getElementById('taskbarFW').className = '';
+    document.getElementById('taskbarFW').style.color = '#ff3333';
+
+    // Spike the charts
+    for (let i = 0; i < 15; i++) {
+      netHistory.push(80 + Math.random() * 40);
+      netHistory.shift();
+    }
+    drawLine();
+
+    // Show popup
+    const overlay = document.getElementById('popupOverlay');
+    const popup = document.getElementById('jackPopup');
+    overlay.classList.add('show');
+    popup.classList.add('show');
+    setTimeout(() => {
+      overlay.classList.add('darken');
+      popup.classList.add('pop');
+    }, 50);
+
+    // Wiggle screen content
+    virusInterval = setInterval(() => {
+      addLog(virusLogs[Math.floor(Math.random()*virusLogs.length)]);
+    }, 1500);
+
+  }, 700);
+}
+
+function closePopup() {
+  const overlay = document.getElementById('popupOverlay');
+  const popup = document.getElementById('jackPopup');
+  overlay.classList.remove('darken');
+  popup.classList.remove('pop');
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    popup.classList.remove('show');
+  }, 300);
+}
+
+function resetAll() {
+  virusMode = false;
+  clearInterval(virusInterval);
+
+  closePopup();
+
+  document.getElementById('fwStatus').textContent = 'ACTIVE';
+  document.getElementById('fwStatus').style.color = '';
+  document.getElementById('fwThreats').textContent = '0';
+  document.getElementById('fwThreats').style.color = '';
+
+  document.getElementById('threatVal').textContent = '0';
+  document.getElementById('threatCard').classList.add('ok');
+  document.getElementById('threatCard').classList.remove('warn');
+  document.getElementById('threatSub').textContent = 'all clear';
+
+  document.getElementById('logBadge').textContent = 'NORMAL';
+  document.getElementById('logBadge').style.cssText = '';
+
+  document.getElementById('taskbarFW').textContent = '🛡 FW: ON';
+  document.getElementById('taskbarFW').style.color = '';
+  document.getElementById('taskbarFW').className = 'status-ok';
+
+  document.getElementById('techBreakout').classList.remove('show');
+
+  // Reset progress bar for next time
+  const pb = document.getElementById('progressBar');
+  pb.style.animation = 'none';
+  void pb.offsetWidth;
+  pb.style.animation = '';
+}
+
+// ═══════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === '1') showTechBreakout();
+  if (e.key === '2') triggerVirus();
+  if (e.key === '0') resetAll();
+  if (e.key === 'Escape') { closePopup(); }
+});
+</script>
+</body>
+</html>
